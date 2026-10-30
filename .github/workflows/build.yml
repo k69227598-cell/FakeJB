@@ -1,0 +1,23 @@
+name: Build IPA
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: FakeJB
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install xcodegen && xcodegen generate
+      - run: >
+          xcodebuild -project Zenith.xcodeproj -scheme Zenith
+          -configuration Release -sdk iphoneos -derivedDataPath build
+          CODE_SIGNING_ALLOWED=NO
+      - run: |
+          mkdir Payload
+          cp -r build/Build/Products/Release-iphoneos/Zenith.app Payload/
+          zip -r Zenith.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Zenith-ipa
+          path: FakeJB/Zenith.ipa
